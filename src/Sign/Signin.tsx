@@ -14,14 +14,14 @@ import {
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signInSchema, SignInFormData } from '../../src/theme/schema';
+import { signInSchema, SignInFormData } from '../theme/schema';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../AUTHENTICATION/authContext';
-import { useTheme } from '../../src/theme/theme';
+import { useTheme } from '../theme/theme';
 
 
-// Import your image directly
+
 const backgroundImage = require('../8033213.webp');
 
 type RootStackParamList = {
@@ -29,7 +29,7 @@ type RootStackParamList = {
   ProfileScreen: undefined;
   ProductScreen: undefined;
   forgot: undefined; // Add this line
-
+  
 };
 
 type SigninScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'signin'>;
@@ -47,15 +47,18 @@ const Signin = () => {
     },
   });
 
-  const onSubmit = (data: SignInFormData) => {
-    if (data.email.toLowerCase() === 'eurisko@gmail.com' && data.password === 'academy2025') {
-      login();
-      Alert.alert('Success', 'Logged in successfully!');
-      navigation.navigate('ProductScreen');
-    } else {
-      Alert.alert('Error', 'Invalid credentials');
-    }
-  };
+ const onSubmit = (data: SignInFormData) => {
+  if (
+    data.email.toLowerCase() === 'eurisko@gmail.com' &&
+    data.password === 'academy2025'
+  ) {
+    login();
+    Alert.alert('Success', 'Logged in successfully!');
+    navigation.navigate('MainApp');
+  } else {
+    Alert.alert('Error', 'Invalid credentials');
+  }
+};
 
   // Dynamic styles based on theme
   const styles = StyleSheet.create({

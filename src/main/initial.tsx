@@ -14,6 +14,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../src/theme/theme';
 
+
 const InitialScreen = () => {
   const navigation = useNavigation();
   const { isDarkMode, toggleTheme } = useTheme();

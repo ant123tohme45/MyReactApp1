@@ -1,6 +1,8 @@
 import { useAuth } from './authContext';
 import React from 'react';
 import { View, Text, Button } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const ProfileScreen = () => {
   const { isLoggedIn, logout } = useAuth();
 

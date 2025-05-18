@@ -3,6 +3,7 @@ import React from 'react';
 import { Text, TextProps } from 'react-native';
 import { useTheme } from '../../theme/theme';
 import { useFonts } from './FontContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type AppTextProps = TextProps & {
   weight?: 'regular' | 'medium' | 'bold';

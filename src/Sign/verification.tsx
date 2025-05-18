@@ -4,6 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { otpSchema, OtpFormData } from '../../src/theme/schema';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const VerificationScreen = () => {
   const navigation = useNavigation();
@@ -148,9 +149,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: 'black',
     fontSize: 16,
     fontWeight: 'bold',
+        alignItems: 'center',
+            justifyContent: 'center',
+
+
   },
   resendText: {
     color: '#666',
