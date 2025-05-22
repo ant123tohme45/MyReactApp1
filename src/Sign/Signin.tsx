@@ -29,7 +29,7 @@ type RootStackParamList = {
   ProfileScreen: undefined;
   ProductScreen: undefined;
   forgot: undefined; // Add this line
-  
+  MainApp: undefined; // Add MainApp route
 };
 
 type SigninScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'signin'>;
@@ -50,11 +50,11 @@ const Signin = () => {
  const onSubmit = (data: SignInFormData) => {
   if (
     data.email.toLowerCase() === 'eurisko@gmail.com' &&
-    data.password === 'academy2025'
+    data.password === '123456'
   ) {
     login();
     Alert.alert('Success', 'Logged in successfully!');
-    navigation.navigate('MainApp');
+    navigation.navigate('MainApp'); // Navigate to the main app screen
   } else {
     Alert.alert('Error', 'Invalid credentials');
   }
@@ -227,7 +227,7 @@ const Signin = () => {
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>🛒 MyShop</Text>
           </View>
-          <Text style={styles.header}>Welcome Back 👋</Text>
+          <Text style={styles.header}>Welcme Back 👋</Text>
           <Text style={styles.subHeader}>Please sign in to continue</Text>
 
           <Controller
@@ -298,7 +298,7 @@ const Signin = () => {
           <View style={styles.signupContainer}>
             <Text style={styles.signupText}>Don't have an account?</Text>
             <TouchableOpacity>
-              <Text style={styles.signupLink} onPress={() => navigation.navigate('Signup')}> Sign Up</Text>
+              <Text style={styles.signupLink} onPress={() => navigation.navigate('MainApp')}> Sign Up</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

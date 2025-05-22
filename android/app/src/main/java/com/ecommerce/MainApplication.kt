@@ -1,5 +1,5 @@
 package com.ecommerce
-
+import com.airbnb.android.react.maps.MapsPackage;
 import android.app.Application
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication

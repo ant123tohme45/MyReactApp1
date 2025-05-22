@@ -15,12 +15,15 @@ import ProfileScreen from './src/ProfileScreen';
 import EditProfileScreen from './src/EditProfileScreen';  
 import VerificationScreen from './src/Sign/verification';
 import AddProductScreen from './src/addProduct';
+import 'react-native-gesture-handler';
+import { ProductsProvider } from './src/productcontext';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Create the tab navigator for main app screens
 function MainTabs() {
   return (
+    <ProductsProvider>
     <Tab.Navigator
       screenOptions={{
         tabBarActiveTintColor: 'blue',
@@ -47,8 +50,11 @@ function MainTabs() {
         options={{ title: 'Profile' }}
       /><Tab.Screen name ="AddProductScreen" component={AddProductScreen} />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+  <Stack.Screen name="ProductDetails" component={details} />
+    </Tab.Navigator>    
+    
 
-    </Tab.Navigator>
+    </ProductsProvider>
   );
 }
 
@@ -65,8 +71,7 @@ function App() {
                         <Stack.Screen name="Verification" component={VerificationScreen} options={{ headerShown: true}} />
 
             <Stack.Screen name="MainApp" component={MainTabs} options={{ headerShown: false }} />
-            
-            <Stack.Screen name="ProductDetails" component={details} />
+           
             <Stack.Screen name="forgot" component={ForgotPasswordScreen} />
             <Stack.Screen name="ContactUs" component={ContactUsScreen} />
             

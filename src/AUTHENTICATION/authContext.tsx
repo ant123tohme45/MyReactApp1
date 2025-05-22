@@ -13,6 +13,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // 2. AuthProvider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
 
   useEffect(() => {
     const loadAuthState = async () => {

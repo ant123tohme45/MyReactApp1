@@ -5,146 +5,119 @@ import {
   TextInput,
   ScrollView,
   StyleSheet,
-  Alert,
   Platform,
   PermissionsAndroid,
   TouchableOpacity,
   Image,
-  ActionSheetIOS
 } from 'react-native';
-import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
+import { ImagePickerResponse, launchCamera } from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
+import { useProducts } from './productcontext';
 
-const AddProductScreen = () => {
+const AddProductScreen = ({ }) => {
   const navigation = useNavigation();
-  const [product, setProduct] = useState({
+  const { addProduct } = useProducts();
+
+  type ProductState = {
+    name: string;
+    description: string;
+    price: string;
+    category: string;
+    images: string[];
+  };
+
+  const [product, setProduct] = useState<ProductState>({
     name: '',
     description: '',
     price: '',
     category: '',
     images: [],
   });
-  const [errors, setErrors] = useState({});
+  type ProductErrors = {
+    name?: string;
+    description?: string;
+    price?: string;
+    category?: string;
+    images?: string;
+  };
+  const [errors, setErrors] = useState<ProductErrors>({});
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: ProductErrors = {};
     if (!product.name.trim()) newErrors.name = 'Product name is required';
     if (!product.description.trim()) newErrors.description = 'Description is required';
     if (!product.price.trim()) newErrors.price = 'Price is required';
     if (isNaN(Number(product.price))) newErrors.price = 'Price must be a number';
     if (!product.category.trim()) newErrors.category = 'Category is required';
     if (product.images.length === 0) newErrors.images = 'At least one image is required';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const requestCameraPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        ]);
-        return (
-          granted['android.permission.CAMERA'] === PermissionsAndroid.RESULTS.GRANTED &&
-          granted['android.permission.READ_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED
-        );
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const showImagePickerOptions = () => {
-    if (product.images.length >= 5) {
-      Alert.alert('Maximum 5 images allowed');
-      return;
-    }
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', 'Take Photo', 'Choose from Library'],
-          cancelButtonIndex: 0,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1) {
-            handleTakePhoto();
-          } else if (buttonIndex === 2) {
-            handleChooseFromLibrary();
-          }
-        }
+  if (Platform.OS === 'android') {
+    try {
+      const cameraPermission = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
+      const readPermission = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
       );
-    } else {
-      Alert.alert(
-        'Add Photo',
-        'Choose an option',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Take Photo', onPress: () => handleTakePhoto() },
-          { text: 'Choose from Library', onPress: () => handleChooseFromLibrary() },
-        ]
+      const writePermission = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
       );
-    }
-  };
 
+      return (
+        cameraPermission === PermissionsAndroid.RESULTS.GRANTED &&
+        readPermission === PermissionsAndroid.RESULTS.GRANTED &&
+        writePermission === PermissionsAndroid.RESULTS.GRANTED
+      );
+    } catch (err) {
+      console.warn(err);
+      return false;
+    }
+  }
+  return true; // iOS permissions handled by react-native-image-picker internally
+};
   const handleTakePhoto = async () => {
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) {
-      Alert.alert('Permission required', 'Please allow camera and storage access to take photos');
-      return;
-    }
+  const hasPermission = await requestCameraPermission();
+  if (!hasPermission) {
+    console.warn('Camera permission denied');
+    return;
+  }
 
-    launchCamera(
-      {
-        mediaType: 'photo',
-        quality: 0.8,
-        saveToPhotos: true,
-      },
-      (response) => {
-        handleImageResponse(response);
-      },
-    );
-  };
+  console.log('Launching camera...');
 
-  const handleChooseFromLibrary = async () => {
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) {
-      Alert.alert('Permission required', 'Please allow storage access to select photos');
-      return;
-    }
-
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 0.8,
-        selectionLimit: 5 - product.images.length,
-      },
-      (response) => {
-        handleImageResponse(response);
-      },
-    );
-  };
-
-  const handleImageResponse = (response) => {
+  launchCamera(
+    {
+      mediaType: 'photo', 
+      quality: 1,
+      saveToPhotos: true,
+    },
+    (response) => {
+      console.log('Camera response:', response);
+      handleImageResponse(response);
+    },
+  );
+};
+  const handleImageResponse = (response: ImagePickerResponse) => {
     if (response.didCancel) {
       console.log('User cancelled image picker');
     } else if (response.errorCode) {
-      Alert.alert('Error', response.errorMessage);
-    } else if (response.assets) {
-      const newImages = response.assets.map(asset => asset.uri);
-      setProduct({
-        ...product,
-        images: [...product.images, ...newImages],
-      });
+      console.error('Error:', response.errorMessage);
+    } else if (response.assets && Array.isArray(response.assets)) {
+      const newImages = response.assets
+        .filter(asset => asset.uri)
+        .map(asset => asset.uri);
+      setProduct(prev => ({
+        ...prev,
+        images: [...prev.images, ...newImages].filter((uri): uri is string => typeof uri === 'string').slice(0, 5),
+      }));
+    } else {
+      console.error('Invalid image response format:', response);
     }
   };
 
-  const removeImage = (index) => {
+  const removeImage = (index: number) => {
     const newImages = [...product.images];
     newImages.splice(index, 1);
     setProduct({
@@ -155,8 +128,16 @@ const AddProductScreen = () => {
 
   const handleSubmit = () => {
     if (validateForm()) {
-      // Here you would typically send the data to your backend
-      Alert.alert('Success', 'Product submitted successfully!');
+      const newProduct = {
+        id: Date.now().toString(),
+        name: product.name,
+        price: `$${product.price}`,
+        description: product.description,
+        images: product.images.length > 0 ? product.images[0] : '',
+        category: product.category,
+      };
+
+      addProduct(newProduct);
       navigation.goBack();
     }
   };
@@ -164,14 +145,14 @@ const AddProductScreen = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Add New Product</Text>
-      
+
       <View style={styles.formGroup}>
         <Text style={styles.label}>Product Name*</Text>
         <TextInput
           style={[styles.input, errors.name && styles.errorInput]}
           placeholder="Enter product name"
           value={product.name}
-          onChangeText={(text) => setProduct({...product, name: text})}
+          onChangeText={(text) => setProduct({ ...product, name: text })}
         />
         {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
       </View>
@@ -184,7 +165,7 @@ const AddProductScreen = () => {
           multiline
           numberOfLines={4}
           value={product.description}
-          onChangeText={(text) => setProduct({...product, description: text})}
+          onChangeText={(text) => setProduct({ ...product, description: text })}
         />
         {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
       </View>
@@ -196,7 +177,7 @@ const AddProductScreen = () => {
           placeholder="Enter price"
           keyboardType="numeric"
           value={product.price}
-          onChangeText={(text) => setProduct({...product, price: text})}
+          onChangeText={(text) => setProduct({ ...product, price: text })}
         />
         {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
       </View>
@@ -205,9 +186,9 @@ const AddProductScreen = () => {
         <Text style={styles.label}>Category*</Text>
         <TextInput
           style={[styles.input, errors.category && styles.errorInput]}
-          placeholder="Select category"
+          placeholder="Enter category"
           value={product.category}
-          onChangeText={(text) => setProduct({...product, category: text})}
+          onChangeText={(text) => setProduct({ ...product, category: text })}
         />
         {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
       </View>
@@ -215,16 +196,16 @@ const AddProductScreen = () => {
       <View style={styles.formGroup}>
         <Text style={styles.label}>Product Images*</Text>
         <Text style={styles.hintText}>Maximum 5 images allowed</Text>
-        <TouchableOpacity style={styles.addImageButton} onPress={showImagePickerOptions}>
-          <Text style={styles.addImageButtonText}>+ Add Image</Text>
+        <TouchableOpacity style={styles.addImageButton} onPress={handleTakePhoto}>
+          <Text style={styles.addImageButtonText}>+ Take Photo</Text>
         </TouchableOpacity>
         {errors.images && <Text style={styles.errorText}>{errors.images}</Text>}
-        
+
         <View style={styles.imageContainer}>
           {product.images.map((uri, index) => (
             <View key={index} style={styles.imageWrapper}>
               <Image source={{ uri }} style={styles.image} />
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.removeImageButton}
                 onPress={() => removeImage(index)}
               >
